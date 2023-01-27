@@ -6,3 +6,7 @@
 .bsp
 *.zip
 *.xml
+target
+bloop.settings.json
+*.json
+project/project
