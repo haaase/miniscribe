@@ -1,2 +1,8 @@
 *.class
 *.log
+.metals
+.scala-build
+.vscode
+.bsp
+*.zip
+*.xml
