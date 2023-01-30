@@ -10,3 +10,4 @@ target
 bloop.settings.json
 *.json
 project/project
+.bloop
