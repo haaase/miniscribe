@@ -1,12 +1,13 @@
 package miniscribe.model
 
-case class Force(name: String, leader: Hero, warbands: Seq[Warband])
+case class Force(name: String, warbands: Seq[Warband])
 
 case class Warband(hero: Hero, troopEntries: Seq[Troop])
 
 case class Hero(
     name: String,
     tier: Tier,
+    isLeader: Boolean,
     baseCost: Int,
     equipment: Seq[Equipment]
 ) extends Model
