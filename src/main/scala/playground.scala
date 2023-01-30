@@ -14,19 +14,19 @@ import scala.scalajs.js.typedarray._
 def main() =
   // get index
   val backend = FetchBackend()
-
   val mesbgRoot =
     uri"http://localhost:8080/http://battlescribedata.appspot.com/repos/middle-earth"
   val mesbgIndex =
     uri"$mesbgRoot/index.bsi"
-
   val indexRequest: Future[Response[Either[String, Array[Byte]]]] = basicRequest
     .get(mesbgIndex)
     .response(asByteArray)
     .send(backend)
 
-  def decompressZip(zipFile: Uint8Array): Future[String] =
-    val zipFileBlob = new Blob(js.Array(zipFile))
+  // unzip index file and retrieve text
+  def unzipTxtFile(zipFile: Array[Byte]): Future[String] =
+    val zipFileJs = Uint8Array.from(zipFile.map(_.toShort).toJSArray)
+    val zipFileBlob = new Blob(js.Array(zipFileJs))
     val zipFileReader = new BlobReader(zipFileBlob)
     val zipReader = new ZipReader(zipFileReader)
     val helloWorldWriter = new TextWriter()
@@ -44,8 +44,8 @@ def main() =
         case Left(error) =>
           throw Exception(s"Failed to reach data repo: $error")
         case Right(zipFile) =>
-          Uint8Array.from(zipFile.map(_.toShort).toJSArray)
-      result <- decompressZip(zipFile)
+          zipFile
+      result <- unzipTxtFile(zipFile)
     yield result
 
   xmlString.onComplete {
