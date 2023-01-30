@@ -10,7 +10,13 @@ scalaJSUseMainModuleInitializer := true
 
 libraryDependencies += "com.softwaremill.sttp.client3" %%% "core" % "3.8.9"
 libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.1.0"
-scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
 
+// js/ts dependencies
 Compile / npmDependencies += "@zip.js/zip.js" -> "~2.6.62"
+Compile / npmDependencies += "compression-webpack-plugin" -> "10.0.0"
+
+// webpack config
 useYarn := true
+fullOptJS / webpackConfigFile := Some(baseDirectory.value / "webpack.config.js")
+// Export JSModule (needed for ScalaJSBundler)
+scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
