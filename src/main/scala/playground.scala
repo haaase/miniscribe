@@ -1,14 +1,13 @@
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
-import sttp.client3._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
-import js.annotation._
-import typings.zipJsZipJs.mod.{BlobReader, Entry, TextWriter, ZipReader}
-import scala.concurrent.Future
+import scala.scalajs.js.typedarray.Uint8Array
+import scala.scalajs.js.JSConverters._
 import org.scalajs.dom.Blob
-import js.JSConverters._
-import scala.scalajs.js.typedarray._
+import typings.zipJsZipJs.mod.{BlobReader, Entry, TextWriter, ZipReader}
+import sttp.client3._
 
 @main
 def main() =
