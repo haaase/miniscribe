@@ -56,7 +56,8 @@ def main() =
     case Failure(exception) => println(s"Failed to acquire index: $exception")
   }
 
-  val ui = view.getContent
+  val controller = Controller()
+  val ui = view.getContent(controller.state)
   document.body.replaceChild(ui.render, document.body.firstElementChild)
 
 // // read xml from string

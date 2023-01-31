@@ -11,3 +11,4 @@ bloop.settings.json
 *.json
 project/project
 .bloop
+node_modules

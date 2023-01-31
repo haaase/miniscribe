@@ -3,10 +3,30 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>miniscribe</title>
+    <style>
+        ul.menu li {
+            display: inline;
+        }
+
+        ul.menu li::after {
+            content: " | ";
+        }
+
+        ul.menu li:last-child::after {
+            content: "";
+        }
+    </style>
 </head>
 
 <body>
+    <!-- <ul class="menu">
+        <li><a>edit options</a></li>
+        <li><a>edit troops</a></li>
+        <li><a>remove</a></li>
+    </ul> -->
     <!-- Include Scala.js compiled code -->
     <!-- <script type="text/javascript" src="./src/main/js/ziptest.js"></script> -->
     <script type="text/javascript"

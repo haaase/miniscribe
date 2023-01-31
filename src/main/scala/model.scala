@@ -7,7 +7,7 @@ case class Warband(hero: Hero, troopEntries: Seq[Troop])
 case class Hero(
     name: String,
     tier: Tier,
-    isLeader: Boolean,
+    isLeader: Boolean = false,
     baseCost: Int,
     equipment: Seq[Equipment]
 ) extends Model
@@ -22,7 +22,7 @@ trait Model:
   def getCost(): Int =
     baseCost + equipment.filter(_.selected).map(_.cost).sum
 
-case class Equipment(cost: Int, selected: Boolean)
+case class Equipment(cost: Int, selected: Boolean = false)
 
 enum Tier:
   case Legend, Valour, Fortitude, Minor, Independent
