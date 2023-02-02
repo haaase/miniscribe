@@ -13,6 +13,7 @@ import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Button
 import rescala.default
 import rescala.default.Events.CBResult
+import miniscribe.Controller
 
 trait ToHTML[A]:
   extension (a: A) def toHTML: TypedTag[Element]
@@ -27,33 +28,28 @@ given ToHTML[Force] with
     def toHTML: TypedTag[Div] =
       div(f.name)
 
-// UI elements
-private val addForce: CBResult[UIEvent, TypedTag[Button]] =
-  Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
-val addForceEvent = addForce.event
+// private val addForce: CBResult[UIEvent, TypedTag[Button]] =
+//   Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
 
-def buttonHandler(
-    army: String,
-    tag: TypedTag[Button]
-): CBResult[String, TypedTag[Button]] = {
-  val handler =
-    Events.fromCallback[UIEvent](cb => tag(army, onclick := cb))
+def armyButton(army: String): TypedTag[Button] =
+  val cb =
+    Events.fromCallback[UIEvent](cb => button(army, onclick := cb))
+  cb.event.observe(_ => miniscribe.Events.addForceEvent.fire(army))
+  return cb.data
 
-  val button: TypedTag[Button] = handler.data
+// def buildArmyButton(
+//     army: String,
+//     tag: TypedTag[Button]
+// ): CBResult[String, TypedTag[Button]] = {
+//   val handler =
+//     Events.fromCallback[UIEvent](cb => tag(army, onclick := cb))
+//   val button: TypedTag[Button] = handler.data
 
-  val handlerEvent =
-    handler.event.map { (e: UIEvent) =>
-      army
-    }
-
-  new CBResult(handlerEvent, button)
-}
-
-val addForceButton = buttonHandler("b force", button())
-val addForceEvent2 = addForceButton.event
+//   new CBResult(miniscribe.Controller.addForceEvent, button)
+// }
 
 // render function
-def getContent(state: Signal[AppState]): TypedTag[Element] =
+def getContent(controller: Controller): TypedTag[Element] =
   // val navbar = ul(
   //   a("add Force")
   // )
@@ -79,9 +75,10 @@ def getContent(state: Signal[AppState]): TypedTag[Element] =
 
   // div(Signal { army().map(_.toHTML) }.asModifierL)
   div(
-    Signal {
-      state().forces.map(_.toHTML)
-    }.asModifierL,
-    addForce.data,
-    addForceButton.data
+    ul(controller.forceOptions.map(_.map(li(_))).asModifierL),
+    div(Signal {
+      controller.state().forces.map(_.toHTML)
+    }.asModifierL),
+    armyButton("a force"),
+    armyButton("b force")
   )
