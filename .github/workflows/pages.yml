@@ -51,15 +51,12 @@ jobs:
         with:
           # node-version: # optional
           cache: yarn
-      - name: Build Artifact
+      - name: Build artifact
         run: sbt "fastOptJS / webpack"
-        # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: |
-            './target/scala-3.2.1/scalajs-bundler/main/miniscribe-fastopt-bundle.js'
-            'index.html'
+          path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
