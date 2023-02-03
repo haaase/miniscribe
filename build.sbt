@@ -16,7 +16,7 @@ libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0"
 
 // js/ts dependencies
 Compile / npmDependencies += "@zip.js/zip.js" -> "~2.6.62"
-Compile / npmDependencies += "compression-webpack-plugin" -> "10.0.0"
+Compile / npmDevDependencies += "compression-webpack-plugin" -> "10.0.0"
 // disable sourcemaps
 Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) }
 Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) }

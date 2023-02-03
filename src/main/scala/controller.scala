@@ -4,7 +4,6 @@ import rescala.default._
 import miniscribe.model.Force
 import scala.util.Failure
 import scala.util.Success
-import typings.node.nodeStrings.data
 
 case class AppState(forces: List[Force] = List())
 

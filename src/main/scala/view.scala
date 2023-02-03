@@ -7,7 +7,6 @@ import scalatags.JsDom.all._
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.{TypedTag}
 import org.scalajs.dom.html.{Element, Div, Input, LI}
-import typings.node.nodeStrings.arm
 import miniscribe.AppState
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Button
