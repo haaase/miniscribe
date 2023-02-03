@@ -1,3 +1,5 @@
+import scalajsbundler.util.JSON.{obj, str}
+
 name := "miniScribe"
 scalaVersion := "3.2.1"
 
@@ -17,6 +19,14 @@ libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0"
 // js/ts dependencies
 Compile / npmDependencies += "@zip.js/zip.js" -> "~2.6.62"
 Compile / npmDevDependencies += "compression-webpack-plugin" -> "10.0.0"
+// dependabot alerts
+Compile / additionalNpmConfig ++= Map(
+  "resolutions" -> obj(
+    "ansi-html" -> str("^0.0.8"),
+    "glob-parent" -> str("^5.1.2"),
+    "node-forge" -> str("^1.3.0")
+  )
+)
 // disable sourcemaps
 Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) }
 Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) }
