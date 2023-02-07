@@ -52,7 +52,7 @@ jobs:
           # node-version: # optional
           cache: yarn
       - name: Build artifact
-        run: sbt "fastOptJS / webpack"
+        run: sbt "fullOptJS / webpack"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:

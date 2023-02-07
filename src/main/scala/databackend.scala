@@ -47,7 +47,7 @@ def getArmies(): Future[Seq[(String, String)]] =
   // get index
   val backend = FetchBackend()
   val mesbgRoot =
-    uri"http://localhost:8090/http://battlescribedata.appspot.com/repos/middle-earth"
+    uri"https://miniscribe-cors.fly.dev/http://battlescribedata.appspot.com/repos/middle-earth"
   val mesbgIndex =
     uri"$mesbgRoot/index.bsi"
   val indexRequest: Future[Response[Either[String, Array[Byte]]]] = basicRequest
