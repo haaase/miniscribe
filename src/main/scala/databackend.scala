@@ -49,7 +49,7 @@ def getArmies(): Future[Seq[(String, String)]] =
   val corsProxy =
     uri"https://miniscribe-cors.fly.dev"
   val mesbgRoot =
-    uri"$corsProxy/http://battlescribedata.appspot.com/repos/middle-earth"
+    uri"$corsProxy/https://battlescribedata.appspot.com/repos/middle-earth"
   val mesbgIndex =
     uri"$mesbgRoot/index.bsi"
   val indexRequest: Future[Response[Either[String, Array[Byte]]]] = basicRequest
@@ -73,6 +73,8 @@ def getArmies(): Future[Seq[(String, String)]] =
       doc <- xmlDoc
       index = for
         entry <- doc \\ "dataIndexEntry"
+        // filter by army catalogues
+        if entry \@ "dataType" == "catalogue"
         name = entry \@ "dataName"
         filePath = entry \@ "filePath"
       yield (name, filePath)
