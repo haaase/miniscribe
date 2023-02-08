@@ -46,8 +46,10 @@ private def parseXML(xmlString: String): xml.Document =
 def getArmies(): Future[Seq[(String, String)]] =
   // get index
   val backend = FetchBackend()
+  val corsProxy =
+    uri"https://miniscribe-cors.fly.dev"
   val mesbgRoot =
-    uri"https://miniscribe-cors.fly.dev/http://battlescribedata.appspot.com/repos/middle-earth"
+    uri"$corsProxy/http://battlescribedata.appspot.com/repos/middle-earth"
   val mesbgIndex =
     uri"$mesbgRoot/index.bsi"
   val indexRequest: Future[Response[Either[String, Array[Byte]]]] = basicRequest
