@@ -20,7 +20,7 @@ class Controller:
   val forceOptions: Var[Either[String, Seq[String]]] = Var(
     Left("Fetching army index...")
   )
-  val dataIndex = databackend.getArmies().map(_.map(_._1))
+  val dataIndex = DataBackend.getArmyIndex().map(_.map(_._1))
   dataIndex.onComplete {
     case Success(value) => forceOptions.set(Right(value))
     case Failure(exception) =>

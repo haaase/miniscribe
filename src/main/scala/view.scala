@@ -4,8 +4,6 @@ import rescala.default._
 import rescala.extra.Tags._
 import miniscribe.model._
 import scalatags.JsDom.all._
-import scalatags.JsDom.TypedTag
-import scalatags.JsDom.{TypedTag}
 import org.scalajs.dom.html.{Element, Div, Heading, Input, LI}
 import miniscribe.AppState
 import org.scalajs.dom.UIEvent
@@ -20,18 +18,18 @@ class View(controller: Controller):
   val appState = controller.state
 
   // ui elements
-  val heading: Signal[TypedTag[Element]] = Signal {
-    header(
-      h1(
-        appState().forces match
-          case Nil => "Please select a force"
-          case l   => s"${l.map(_.name).mkString(" and ")} Army"
-      )
+  val title: Signal[Tag] = Signal {
+    h1(
+      appState().forces match
+        case Nil      => "Please select a force"
+        case x :: Nil => s"${x.name} Army"
+        case l =>
+          s"${l.take(l.length - 1).map(_.name).mkString(", ")}, and ${l.last.name} Alliance"
     )
   }
 
   trait ToHTML[A]:
-    extension (a: A) def toHTML: TypedTag[Element]
+    extension (a: A) def toHTML: Tag
 
   given ToHTML[Hero] with
     extension (h: Hero)
@@ -40,8 +38,8 @@ class View(controller: Controller):
 
   given ToHTML[Force] with
     extension (f: Force)
-      def toHTML: TypedTag[Div] =
-        div(f.name)
+      def toHTML =
+        h2(f.name)
 
   // private val addForce: CBResult[UIEvent, TypedTag[Button]] =
   //   Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
@@ -92,12 +90,14 @@ class View(controller: Controller):
   )
 
   // render function
-  def getContent(): TypedTag[Element] =
-    div(
-      heading.asModifier,
-      div(Signal {
-        controller.state().forces.map(_.toHTML)
-      }.asModifierL),
-      navbar,
-      forcesMenu.asModifier
-    )
+  def getContent(): HtmlTag =
+    body(Signal {
+      div(
+        title(),
+        div(
+          controller.state().forces.map(_.toHTML)
+        ),
+        navbar,
+        forcesMenu()
+      )
+    }.asModifier)
