@@ -1,0 +1,23 @@
+a:hover {
+    cursor: pointer;
+}
+
+ul {
+    padding-left: 30px;
+}
+
+ul.menu {
+    padding-left: 0;
+}
+
+ul.menu li {
+    display: inline;
+}
+
+ul.menu li::after {
+    content: " | ";
+}
+
+ul.menu li:last-child::after {
+    content: "";
+}

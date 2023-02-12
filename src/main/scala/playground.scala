@@ -20,7 +20,8 @@ import fs2.data.xml.scalaXml._
 def main() =
 
   val controller = Controller()
-  val ui = view.getContent(controller)
+  val view = View(controller)
+  val ui = view.getContent()
   document.body.replaceChild(ui.render, document.body.firstElementChild)
 
 // // read xml from string

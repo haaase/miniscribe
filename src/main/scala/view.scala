@@ -1,4 +1,4 @@
-package miniscribe.view
+package miniscribe
 
 import rescala.default._
 import rescala.extra.Tags._
@@ -6,78 +6,98 @@ import miniscribe.model._
 import scalatags.JsDom.all._
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.{TypedTag}
-import org.scalajs.dom.html.{Element, Div, Input, LI}
+import org.scalajs.dom.html.{Element, Div, Heading, Input, LI}
 import miniscribe.AppState
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Button
 import rescala.default
 import rescala.default.Events.CBResult
 import miniscribe.Controller
+import scalatags.JsDom._
+import scala.xml.Elem
 
-trait ToHTML[A]:
-  extension (a: A) def toHTML: TypedTag[Element]
+class View(controller: Controller):
+  val appState = controller.state
 
-given ToHTML[Hero] with
-  extension (h: Hero)
-    def toHTML: TypedTag[Div] =
-      div(h.name)
+  // ui elements
+  val heading: Signal[TypedTag[Element]] = Signal {
+    header(
+      h1(
+        appState().forces match
+          case Nil => "Please select a force"
+          case l   => s"${l.map(_.name).mkString(" and ")} Army"
+      )
+    )
+  }
 
-given ToHTML[Force] with
-  extension (f: Force)
-    def toHTML: TypedTag[Div] =
-      div(f.name)
+  trait ToHTML[A]:
+    extension (a: A) def toHTML: TypedTag[Element]
 
-// private val addForce: CBResult[UIEvent, TypedTag[Button]] =
-//   Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
+  given ToHTML[Hero] with
+    extension (h: Hero)
+      def toHTML: TypedTag[Div] =
+        div(h.name)
 
-def armyButton(army: String): TypedTag[Button] =
-  val cb =
-    Events.fromCallback[UIEvent](cb => button(army, onclick := cb))
-  cb.event.observe(_ => miniscribe.Events.addForceEvent.fire(army))
-  return cb.data
+  given ToHTML[Force] with
+    extension (f: Force)
+      def toHTML: TypedTag[Div] =
+        div(f.name)
 
-// def buildArmyButton(
-//     army: String,
-//     tag: TypedTag[Button]
-// ): CBResult[String, TypedTag[Button]] = {
-//   val handler =
-//     Events.fromCallback[UIEvent](cb => tag(army, onclick := cb))
-//   val button: TypedTag[Button] = handler.data
+  // private val addForce: CBResult[UIEvent, TypedTag[Button]] =
+  //   Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
 
-//   new CBResult(miniscribe.Controller.addForceEvent, button)
-// }
+  def addArmyButton(army: String): TypedTag[Element] =
+    val cb =
+      Events.fromCallback[UIEvent](cb => a(army, onclick := cb))
+    cb.event.observe(_ => miniscribe.Events.addForceEvent.fire(army))
+    return cb.data
 
-// render function
-def getContent(controller: Controller): TypedTag[Element] =
-  // val navbar = ul(
-  //   a("add Force")
-  // )
+  // def buildArmyButton(
+  //     army: String,
+  //     tag: TypedTag[Button]
+  // ): CBResult[String, TypedTag[Button]] = {
+  //   val handler =
+  //     Events.fromCallback[UIEvent](cb => tag(army, onclick := cb))
+  //   val button: TypedTag[Button] = handler.data
 
-  // val army: Var[List[Hero]] = Var(List())
-  // army.transform(
-  //   _ :+
-  //     Hero(
-  //       "Bernd",
-  //       tier = Tier.Fortitude,
-  //       baseCost = 200,
-  //       equipment = List()
-  //     )
-  // )
-  // army.transform(
-  //   _ :+ Hero(
-  //     "Claudia",
-  //     tier = Tier.Legend,
-  //     baseCost = 300,
-  //     equipment = List()
-  //   )
-  // )
+  //   new CBResult(miniscribe.Controller.addForceEvent, button)
+  // }
+  val toggleForcesMenuEvent: Evt[Unit] = Evt()
+  val forcesMenuVisible: Signal[Boolean] =
+    toggleForcesMenuEvent.fold(false)((acc, _) => !acc)
+  val toggleForcesButton =
+    Events.fromCallback[UIEvent](cb =>
+      Signal {
+        a(
+          s"${if forcesMenuVisible() then "▼" else "▶"} add force",
+          onclick := cb
+        )
+      }.asModifier
+    )
+  val observer =
+    toggleForcesButton.event.observe(_ => toggleForcesMenuEvent.fire())
 
-  // div(Signal { army().map(_.toHTML) }.asModifierL)
-  div(
-    ul(controller.forceOptions.map(_.map(li(_))).asModifierL),
-    div(Signal {
-      controller.state().forces.map(_.toHTML)
-    }.asModifierL),
-    armyButton("a force"),
-    armyButton("b force")
+  val forcesMenu: Signal[TypedTag[Element]] = Signal {
+    div(
+      visibility := (if forcesMenuVisible() then "inherit" else "hidden"),
+      controller.forceOptions() match
+        case Left(message) => p(message)
+        case Right(forceOptions) =>
+          ul(forceOptions.map(name => li(addArmyButton(name))))
+    )
+  }
+  val navbar = ul(
+    `class` := "menu",
+    toggleForcesButton.data
   )
+
+  // render function
+  def getContent(): TypedTag[Element] =
+    div(
+      heading.asModifier,
+      div(Signal {
+        controller.state().forces.map(_.toHTML)
+      }.asModifierL),
+      navbar,
+      forcesMenu.asModifier
+    )

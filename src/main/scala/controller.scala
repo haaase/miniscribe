@@ -15,12 +15,14 @@ class Controller:
     Events.addForceEvent.fold(AppState())((state, newForce) =>
       state.copy(forces = state.forces :+ Force(newForce, List()))
     )
-  val forceOptions: Var[Seq[String]] = Var(List("Fetching army index..."))
 
+  // fetch army options
+  val forceOptions: Var[Either[String, Seq[String]]] = Var(
+    Left("Fetching army index...")
+  )
   val dataIndex = databackend.getArmies().map(_.map(_._1))
-
   dataIndex.onComplete {
-    case Success(value) => forceOptions.set(value)
+    case Success(value) => forceOptions.set(Right(value))
     case Failure(exception) =>
-      forceOptions.set(List(s"Failed to acquire army index: $exception"))
+      forceOptions.set(Left(s"Failed to acquire army index: $exception"))
   }
