@@ -23,6 +23,7 @@ object DataBackend:
   val backend = FetchBackend()
   val corsProxy =
     uri"https://miniscribe-cors.fly.dev"
+  // see https://gallery.bsdata.net/?repo=middle-earth and https://github.com/BSData/gallery for better alternative
   val mesbgRoot =
     uri"$corsProxy/https://battlescribedata.appspot.com/repos/middle-earth"
 
