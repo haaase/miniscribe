@@ -21,3 +21,7 @@ ul.menu li::after {
 ul.menu li:last-child::after {
     content: "";
 }
+
+h2.force {
+    margin-bottom: 0;
+}

@@ -4,25 +4,37 @@ import rescala.default._
 import miniscribe.model.Force
 import scala.util.Failure
 import scala.util.Success
+import cats.conversions.all
 
 case class AppState(forces: List[Force] = List())
 
 object Events:
   val addForceEvent = Evt[String]()
+  val deleteForceEvent = Evt[String]()
 
 class Controller:
+  private val forceEvents =
+    Events.addForceEvent.map(Right(_)) || Events.deleteForceEvent.map(Left(_))
   val state: Signal[AppState] =
-    Events.addForceEvent.fold(AppState())((state, newForce) =>
-      state.copy(forces = state.forces :+ Force(newForce, List()))
-    )
+    forceEvents.fold(AppState()) {
+      case (state, Right(newForce)) =>
+        state.copy(forces = state.forces :+ Force(newForce, List()))
+      case (state, Left(removeForce)) =>
+        state.copy(forces = state.forces.filter(_._1 != removeForce))
+    }
 
   // fetch army options
-  val forceOptions: Var[Either[String, Seq[String]]] = Var(
+  private val allForceOptions: Var[Either[String, Seq[String]]] = Var(
     Left("Fetching army index...")
   )
-  val dataIndex = DataBackend.getArmyIndex().map(_.map(_._1))
+  private val dataIndex = DataBackend.getArmyIndex().map(_.map(_._1))
   dataIndex.onComplete {
-    case Success(value) => forceOptions.set(Right(value))
+    case Success(value) => allForceOptions.set(Right(value))
     case Failure(exception) =>
-      forceOptions.set(Left(s"Failed to acquire army index: $exception"))
+      allForceOptions.set(Left(s"Failed to acquire army index: $exception"))
   }
+  val availableForceOptions =
+    Signal {
+      val forceNames = state().forces.map(_.name).toSet
+      allForceOptions().map(_.filter(!forceNames.contains(_)))
+    }

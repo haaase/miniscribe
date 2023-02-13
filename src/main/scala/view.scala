@@ -39,7 +39,10 @@ class View(controller: Controller):
   given ToHTML[Force] with
     extension (f: Force)
       def toHTML =
-        h2(f.name)
+        div(
+          h2(`class` := "force", f.name),
+          removeArmyButton(f.name)
+        )
 
   // private val addForce: CBResult[UIEvent, TypedTag[Button]] =
   //   Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
@@ -48,8 +51,14 @@ class View(controller: Controller):
     val cb =
       Events.fromCallback[UIEvent](cb => a(army, onclick := cb))
     cb.event.observe(_ => miniscribe.Events.addForceEvent.fire(army))
+    cb.event.observe(_ => toggleForcesMenuEvent.fire())
     return cb.data
 
+  def removeArmyButton(army: String): TypedTag[Element] =
+    val cb =
+      Events.fromCallback[UIEvent](cb => a("delete", onclick := cb))
+    cb.event.observe(_ => miniscribe.Events.deleteForceEvent.fire(army))
+    return cb.data
   // def buildArmyButton(
   //     army: String,
   //     tag: TypedTag[Button]
@@ -62,7 +71,7 @@ class View(controller: Controller):
   // }
   val toggleForcesMenuEvent: Evt[Unit] = Evt()
   val forcesMenuVisible: Signal[Boolean] =
-    toggleForcesMenuEvent.fold(false)((acc, _) => !acc)
+    toggleForcesMenuEvent.fold(false)((vis, _) => !vis)
   val toggleForcesButton =
     Events.fromCallback[UIEvent](cb =>
       Signal {
@@ -77,11 +86,11 @@ class View(controller: Controller):
 
   val forcesMenu: Signal[TypedTag[Element]] = Signal {
     div(
-      visibility := (if forcesMenuVisible() then "inherit" else "hidden"),
-      controller.forceOptions() match
+      display := (if forcesMenuVisible() then "inherit" else "none"),
+      controller.availableForceOptions() match
         case Left(message) => p(message)
         case Right(forceOptions) =>
-          ul(forceOptions.map(name => li(addArmyButton(name))))
+          ul(forceOptions.sorted.map(name => li(addArmyButton(name))))
     )
   }
   val navbar = ul(
