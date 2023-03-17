@@ -17,7 +17,8 @@ libraryDependencies += "de.tu-darmstadt.stg" %%% "rescala" % "0.32.0"
 libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0"
 
 // js/ts dependencies
-Compile / npmDependencies += "@zip.js/zip.js" -> "~2.6.62"
+webpack / version := "5.76.2"
+Compile / npmDependencies += "@zip.js/zip.js" -> "^2.6.62"
 Compile / npmDevDependencies += "compression-webpack-plugin" -> "10.0.0"
 // dependabot alerts
 Compile / additionalNpmConfig ++= Map(
