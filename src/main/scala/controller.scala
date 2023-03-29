@@ -6,7 +6,8 @@ import scala.util.Failure
 import scala.util.Success
 import cats.conversions.all
 
-case class AppState(forces: List[Force] = List())
+case class AppState(forces: List[Force] = List()):
+  def points: Int = forces.map(_.cost).sum
 
 object Events:
   val addForceEvent = Evt[String]()

@@ -1,8 +1,13 @@
 package miniscribe.model
 
-case class Force(name: String, warbands: Seq[Warband])
+transparent trait HasCost:
+  def cost: Int
 
-case class Warband(hero: Hero, troopEntries: Seq[Troop])
+case class Force(name: String, warbands: Seq[Warband]) extends HasCost:
+  def cost: Int = warbands.map(_.cost).sum
+
+case class Warband(hero: Hero, troopEntries: Seq[Troop]) extends HasCost:
+  def cost: Int = hero.cost + troopEntries.map(_.cost).sum
 
 case class Hero(
     name: String,
@@ -15,11 +20,11 @@ case class Hero(
 case class Troop(name: String, baseCost: Int, equipment: Seq[Equipment])
     extends Model
 
-trait Model:
-  val name: String
-  val equipment: Seq[Equipment]
-  val baseCost: Int
-  def getCost(): Int =
+trait Model extends HasCost:
+  def name: String
+  def equipment: Seq[Equipment]
+  def baseCost: Int
+  def cost: Int =
     baseCost + equipment.filter(_.selected).map(_.cost).sum
 
 case class Equipment(cost: Int, selected: Boolean = false)

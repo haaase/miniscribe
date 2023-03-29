@@ -21,10 +21,13 @@ class View(controller: Controller):
   val title: Signal[Tag] = Signal {
     h1(
       appState().forces match
-        case Nil      => "Please select a force"
-        case x :: Nil => s"${x.name} Army"
+        case Nil => "Please select a force"
         case l =>
-          s"${l.take(l.length - 1).map(_.name).mkString(", ")}, and ${l.last.name} Alliance"
+          val name = l match
+            case x :: Nil => s"${x.name} Army"
+            case l =>
+              s"${l.take(l.length - 1).map(_.name).mkString(", ")}, and ${l.last.name} Alliance"
+          s"$name (${appState().points}P)"
     )
   }
 
