@@ -23,7 +23,8 @@ object DataBackend:
   // urls
   val backend = FetchBackend()
   val corsProxy =
-    uri"https://miniscribe-cors.fly.dev"
+    // uri"https://miniscribe-cors.fly.dev"
+    uri"http://localhost:8080"
   // see https://gallery.bsdata.net/?repo=middle-earth and https://github.com/BSData/gallery for better alternative
   val mesbgRoot =
     uri"$corsProxy/https://battlescribedata.appspot.com/repos/middle-earth"
@@ -73,15 +74,17 @@ object DataBackend:
     // get index
     val xmlDoc = fetchXMLFile(uri"$mesbgRoot/index.bsi")
 
-      for
-        doc <- xmlDoc
-        index = for
+    for
+      doc <- xmlDoc
+      index = {
+        for
           entry <- doc \\ "dataIndexEntry"
           // filter by army catalogues
           if entry \@ "dataType" == "catalogue"
           name = entry \@ "dataName"
           filePath = entry \@ "filePath"
         yield (name, filePath)
+      }
       allArmies <- index.map { (name, path) =>
         (Future(name), getArmyOptions(path)).tupled
       }.sequence
