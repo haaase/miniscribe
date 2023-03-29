@@ -31,7 +31,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version-file: /.github/workflows/.java-version
+        java-version-file: .github/workflows/.java-version
         distribution: 'temurin'
         cache: 'sbt'
     - name: Setup Node.js environment
