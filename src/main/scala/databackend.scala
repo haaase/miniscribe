@@ -1,5 +1,6 @@
 package miniscribe
 
+import cats.syntax.all._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Failure
@@ -68,11 +69,10 @@ object DataBackend:
   def getArmyOptions(filename: String): Future[xml.Document] =
     fetchXMLFile(uri"$mesbgRoot/$filename")
 
-  def getArmyIndex(): Future[Seq[(String, String)]] =
+  def buildArmyIndex(): Future[Map[String, xml.Document]] =
     // get index
     val xmlDoc = fetchXMLFile(uri"$mesbgRoot/index.bsi")
 
-    val dataIndex: Future[Seq[(String, String)]] =
       for
         doc <- xmlDoc
         index = for
@@ -82,9 +82,11 @@ object DataBackend:
           name = entry \@ "dataName"
           filePath = entry \@ "filePath"
         yield (name, filePath)
-      yield index
+      allArmies <- index.map { (name, path) =>
+        (Future(name), getArmyOptions(path)).tupled
+      }.sequence
+    yield allArmies.toMap
 
-    return dataIndex
   //   dataIndex.onComplete {
   //     case Success(value)     => println(value)
   //     case Failure(exception) => println(s"Failed to acquire index: $exception")

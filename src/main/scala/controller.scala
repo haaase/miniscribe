@@ -28,9 +28,10 @@ class Controller:
   private val allForceOptions: Var[Either[String, Seq[String]]] = Var(
     Left("Fetching army index...")
   )
-  private val dataIndex = DataBackend.getArmyIndex().map(_.map(_._1))
-  dataIndex.onComplete {
-    case Success(value) => allForceOptions.set(Right(value))
+  private val armyIndex =
+    DataBackend.buildArmyIndex()
+  armyIndex.onComplete {
+    case Success(value) => allForceOptions.set(Right(value.keys.toSeq))
     case Failure(exception) =>
       allForceOptions.set(Left(s"Failed to acquire army index: $exception"))
   }
