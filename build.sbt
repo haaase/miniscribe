@@ -37,3 +37,12 @@ useYarn := true
 fullOptJS / webpackConfigFile := Some(baseDirectory.value / "webpack.config.js")
 // Export JSModule (needed for ScalaJSBundler)
 scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+
+// protocol buffers
+Compile / PB.targets := Seq(
+  scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+)
+// disable grpc service stub generation
+Compile / PB.targets := Seq(
+  scalapb.gen(grpc = false) -> (Compile / sourceManaged).value
+)

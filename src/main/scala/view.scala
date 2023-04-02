@@ -2,10 +2,8 @@ package miniscribe
 
 import rescala.default._
 import rescala.extra.Tags._
-import miniscribe.model._
 import scalatags.JsDom.all._
 import org.scalajs.dom.html.{Element, Div, Heading, Input, LI}
-import miniscribe.AppState
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Button
 import rescala.default
@@ -13,6 +11,8 @@ import rescala.default.Events.CBResult
 import miniscribe.Controller
 import scalatags.JsDom._
 import scala.xml.Elem
+import miniscribe.data.{Force, Hero}
+import miniscribe.data.given
 
 class View(controller: Controller):
   val appState = controller.state
@@ -23,11 +23,11 @@ class View(controller: Controller):
       appState().forces match
         case Nil => "Please select a force"
         case l =>
-          val name = l match
-            case x :: Nil => s"${x.name} Army"
-            case l =>
+          val name = l.length match
+            case 1 => s"${l.head.name} Army"
+            case _ =>
               s"${l.take(l.length - 1).map(_.name).mkString(", ")}, and ${l.last.name} Alliance"
-          s"$name (${appState().points}P)"
+          s"$name (${appState().forces.map(_.cost).sum}P)"
     )
   }
 
@@ -37,7 +37,7 @@ class View(controller: Controller):
   given ToHTML[Hero] with
     extension (h: Hero)
       def toHTML: TypedTag[Div] =
-        div(h.name)
+        div(h.model.map(_.name).getOrElse("ERR: No Name Defined"))
 
   given ToHTML[Force] with
     extension (f: Force)
@@ -106,6 +106,7 @@ class View(controller: Controller):
     body(Signal {
       div(
         title(),
+        p("length: " + appState().forces.length.toString),
         div(
           controller.state().forces.map(_.toHTML)
         ),

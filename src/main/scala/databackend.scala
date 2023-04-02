@@ -27,7 +27,7 @@ object DataBackend:
     // uri"http://localhost:8080"
   // see https://gallery.bsdata.net/?repo=middle-earth and https://github.com/BSData/gallery for better alternative
   val mesbgRoot =
-    uri"$corsProxy/https://battlescribedata.appspot.com/repos/middle-earth"
+    uri"$corsProxy/https://github.com/BSData/middle-earth/releases/latest/download/"
 
   // unzip index file and retrieve text
   private def unzipTxtFile(zipFile: Array[Byte]): Future[String] =
@@ -72,7 +72,7 @@ object DataBackend:
 
   def buildArmyIndex(): Future[Map[String, xml.Document]] =
     // get index
-    val xmlDoc = fetchXMLFile(uri"$mesbgRoot/index.bsi")
+    val xmlDoc = fetchXMLFile(uri"$mesbgRoot/middle-earth.latest.bsi")
 
     for
       doc <- xmlDoc

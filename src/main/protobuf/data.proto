@@ -1,0 +1,42 @@
+syntax = "proto3";
+package miniscribe;
+
+message Equipment {
+  string name = 1;
+  int32 cost = 2;
+  bool selected = 3;
+}
+
+message Model {
+  string name = 1;
+  int32 base_cost = 2;
+  repeated Equipment equipment = 3;
+}
+
+enum HeroicTier {
+  LEGEND = 0;
+  VALOUR = 1;
+  FORTITUDE = 2;
+  MINOR = 3;
+  INDEPENDENT = 4;
+}
+
+message Hero {
+  Model model = 1;
+  HeroicTier tier = 2; 
+  bool is_leader = 3;
+}
+
+message Warband {
+  Hero hero = 1;
+  repeated Model troops = 2;
+}
+
+message Force {
+  string name = 1;
+  repeated Warband warbands = 2;
+}
+
+message AppState {
+  repeated Force forces = 1;
+}
