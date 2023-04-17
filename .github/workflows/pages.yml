@@ -39,7 +39,6 @@ jobs:
           path: |
             ~/.cache/scalablytyped
             ~/.ivy2/local/org.scalablytyped
-      - uses: actions/checkout@v3
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
