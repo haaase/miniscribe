@@ -106,7 +106,6 @@ class View(controller: Controller):
     body(Signal {
       div(
         title(),
-        p("length: " + appState().forces.length.toString),
         div(
           controller.state().forces.map(_.toHTML)
         ),
