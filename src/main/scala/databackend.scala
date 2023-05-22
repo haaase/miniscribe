@@ -18,6 +18,7 @@ import fs2.data.xml._
 import fs2.data.xml.dom._
 import fs2.data.xml.scalaXml._
 import sttp.model.Uri
+import typings.idbKeyval.{mod => idbKeyval}
 
 object DataBackend:
   // urls
@@ -55,7 +56,8 @@ object DataBackend:
       .toTry
       .get
 
-  private def fetchXMLFile(url: Uri): Future[xml.Document] =
+  // fetch a zipped file and return the content as string
+  private def fetchFile(url: Uri): Future[String] =
     val request = basicRequest.get(url).response(asByteArray).send(backend)
     for
       response <- request
@@ -65,14 +67,28 @@ object DataBackend:
         case Right(zipFile) =>
           zipFile
       xmlString <- unzipTxtFile(zipFile)
-    yield parseXML(xmlString)
+    yield xmlString
 
-  def getArmyOptions(filename: String): Future[xml.Document] =
-    fetchXMLFile(uri"$mesbgRoot/$filename")
+  // returns the specified catalogue as xmlDoc. If the specified revision is already cached, use this one.
+  def getArmyCatalogue(filename: String, revision: Int): Future[xml.Document] =
+    val key = s"$filename$revision"
+    val dbResult = idbKeyval.get[String](key).toFuture.map(_.toOption)
+    for
+      db <- dbResult
+      string <- db match
+        case Some(value) =>
+          println(s"Cache hit for $key")
+          Future.successful(value)
+        case None =>
+          val file = fetchFile(uri"$mesbgRoot/$filename")
+          file.onComplete(f => if f.isSuccess then idbKeyval.set(key, f.get))
+          file
+    yield parseXML(string)
 
   def buildArmyIndex(): Future[Map[String, xml.Document]] =
     // get index
-    val xmlDoc = fetchXMLFile(uri"$mesbgRoot/middle-earth.latest.bsi")
+    val xmlDoc =
+      fetchFile(uri"$mesbgRoot/middle-earth.latest.bsi").map(parseXML)
 
     for
       doc <- xmlDoc
@@ -83,10 +99,11 @@ object DataBackend:
           if entry \@ "dataType" == "catalogue"
           name = entry \@ "dataName"
           filePath = entry \@ "filePath"
-        yield (name, filePath)
+          revision = (entry \@ "dataRevision").toInt
+        yield (name, revision, filePath)
       }
-      allArmies <- index.map { (name, path) =>
-        (Future(name), getArmyOptions(path)).tupled
+      allArmies <- index.map { (name, revision, path) =>
+        (Future.successful(name), getArmyCatalogue(path, revision)).tupled
       }.sequence
     yield allArmies.toMap
 

@@ -19,6 +19,7 @@ libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0"
 // js/ts dependencies
 webpack / version := "5.76.2"
 Compile / npmDependencies += "@zip.js/zip.js" -> "^2.6.62"
+Compile / npmDependencies += "idb-keyval" -> "^6.2.1"
 Compile / npmDevDependencies += "compression-webpack-plugin" -> "10.0.0"
 // dependabot alerts
 Compile / additionalNpmConfig ++= Map(
