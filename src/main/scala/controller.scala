@@ -11,15 +11,24 @@ import java.nio.charset.StandardCharsets
 import org.scalajs.dom
 import org.scalajs.dom.URLSearchParams
 import scala.util.Try
+import org.scalajs.dom.PopStateEvent
+
+sealed trait EventTypes
+case object ForwardBackward extends EventTypes
+sealed trait ForceEvent extends EventTypes:
+  def force: String
+case class Add(force: String) extends ForceEvent
+case class Delete(force: String) extends ForceEvent
 
 object Events:
   val addForceEvent = Evt[String]()
   val deleteForceEvent = Evt[String]()
+  val forwardBackwardEvent = Evt[Unit]()
 
 class Controller:
   // initialize based on URL parameters
-  val params = URLSearchParams(dom.window.location.search)
-  val initialState =
+  def parseState() =
+    val params = URLSearchParams(dom.window.location.search)
     if params.has("state") then
       Try(
         AppState
@@ -27,14 +36,19 @@ class Controller:
       ).getOrElse(AppState())
     else AppState()
 
-  private val forceEvents =
-    Events.addForceEvent.map(Right(_)) || Events.deleteForceEvent.map(Left(_))
-  val state: Signal[AppState] =
-    forceEvents.fold(initialState) {
-      case (state, Right(newForce)) =>
-        state.copy(forces = state.forces :+ Force(newForce, List()))
-      case (state, Left(removeForce)) =>
-        state.copy(forces = state.forces.filter(_._1 != removeForce))
+  // app state can be changed through these events
+  val stateEvents = (Events.addForceEvent.map(Add(_)) ||
+    Events.deleteForceEvent.map(Delete(_)) ||
+    Events.forwardBackwardEvent.map(_ => ForwardBackward))
+
+  val state: Signal[AppState] = stateEvents
+    .fold(parseState()) {
+      case (state, Add(force)) =>
+        state.copy(forces = state.forces :+ Force(force, List()))
+      case (state, Delete(force)) =>
+        state.copy(forces = state.forces.filter(_._1 != force))
+      case (state, ForwardBackward) =>
+        parseState()
     }
 
   // fetch army options
@@ -54,19 +68,30 @@ class Controller:
       allForceOptions().map(_.filter(!forceNames.contains(_)))
     }
 
-  private val proto: Signal[String] = Signal {
-    Base64.getEncoder.encodeToString(
-      data.AppState(forces = state().forces).toByteArray
-    )
+  // update history when AppState changes but not on forward/backward events
+  val lastEvent = stateEvents.latest()
+  Signal { (lastEvent(), state()) }.observe {
+    case (ForwardBackward, _) => ()
+    case (_, s) =>
+      val p = Base64.getEncoder.encodeToString(
+        data.AppState(forces = s.forces).toByteArray
+      )
+      if !(p.isEmpty()) then
+        dom.window.history.pushState(p, "title", s"?state=$p")
+      else
+        dom.window.history.pushState(
+          "",
+          "title",
+          s"${dom.window.location.href.split("\\?").head}"
+        )
   }
 
-  proto.observe(p =>
-    if !(p.isEmpty()) then
-      dom.window.history.pushState(null, "title", s"?state=$p")
-    else
-      dom.window.history.pushState(
-        null,
-        "title",
-        s"${dom.window.location.href.split("\\?").head}"
-      )
+  dom.window.addEventListener(
+    "popstate",
+    { (e: PopStateEvent) =>
+      // println(
+      //   s"popstate: ${e.state}.\n window.location:${dom.window.location}"
+      // );
+      Events.forwardBackwardEvent.fire()
+    }
   )
