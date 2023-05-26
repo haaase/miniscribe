@@ -77,7 +77,7 @@ object DataBackend:
       db <- dbResult
       string <- db match
         case Some(value) =>
-          println(s"Cache hit for $key")
+          // println(s"Cache hit for $key")
           Future.successful(value)
         case None =>
           val file = fetchFile(uri"$mesbgRoot/$filename")
