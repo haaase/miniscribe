@@ -53,14 +53,14 @@ class View(controller: Controller):
   def addArmyButton(army: String): TypedTag[Element] =
     val cb =
       Events.fromCallback[UIEvent](cb => a(army, onclick := cb))
-    cb.event.observe(_ => miniscribe.Events.addForceEvent.fire(army))
+    cb.event.observe(_ => miniscribe.ForceEvents.add.fire(army))
     cb.event.observe(_ => toggleForcesMenuEvent.fire())
     return cb.data
 
   def removeArmyButton(army: String): TypedTag[Element] =
     val cb =
       Events.fromCallback[UIEvent](cb => a("delete", onclick := cb))
-    cb.event.observe(_ => miniscribe.Events.deleteForceEvent.fire(army))
+    cb.event.observe(_ => miniscribe.ForceEvents.delete.fire(army))
     return cb.data
   // def buildArmyButton(
   //     army: String,
