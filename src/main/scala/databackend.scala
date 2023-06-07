@@ -22,12 +22,12 @@ import typings.idbKeyval.{mod => idbKeyval}
 
 object DataBackend:
   // urls
-  val backend = FetchBackend()
+  private val fetchBackend = FetchBackend()
   val corsProxy =
     uri"https://miniscribe-cors.fly.dev"
     // uri"http://localhost:8080"
   // see https://gallery.bsdata.net/?repo=middle-earth and https://github.com/BSData/gallery for better alternative
-  val mesbgRoot =
+  private val mesbgRoot =
     uri"$corsProxy/https://github.com/BSData/middle-earth/releases/latest/download/"
 
   // unzip index file and retrieve text
@@ -56,9 +56,9 @@ object DataBackend:
       .toTry
       .get
 
-  // fetch a zipped file and return the content as string
+  // fetch a zipped BS data file and return the content as string
   private def fetchFile(url: Uri): Future[String] =
-    val request = basicRequest.get(url).response(asByteArray).send(backend)
+    val request = basicRequest.get(url).response(asByteArray).send(fetchBackend)
     for
       response <- request
       zipFile = response.body match
@@ -106,6 +106,8 @@ object DataBackend:
         (Future.successful(name), getArmyCatalogue(path, revision)).tupled
       }.sequence
     yield allArmies.toMap
+
+  def getHeroOptions(armyCatalogue: xml.Document): List[String] = ???
 
   //   dataIndex.onComplete {
   //     case Success(value)     => println(value)
