@@ -1,6 +1,6 @@
 package miniscribe
 
-import rescala.default._
+import rescala.default.*
 import rescala.extra.Tags._
 import scalatags.JsDom.all._
 import org.scalajs.dom.html.{Element, Div, Heading, Input, LI}
@@ -13,23 +13,40 @@ import scalatags.JsDom._
 import scala.xml.Elem
 import miniscribe.data.{Force, Hero}
 import miniscribe.data.given
+import typings.std.stdStrings.end
+import org.scalajs.dom.HTMLDivElement
 
-class View(controller: Controller):
-  val appState = controller.state
-
-  // ui elements
-  val title: Signal[Tag] = Signal {
-    h1(
-      appState().forces match
-        case Nil => "Please select a force"
-        case l =>
-          val name = l.length match
-            case 1 => s"${l.head.name} Army"
-            case _ =>
-              s"${l.take(l.length - 1).map(_.name).mkString(", ")}, and ${l.last.name} Alliance"
-          s"$name (${appState().forces.map(_.cost).sum}P)"
+class toggleMenu(label: String, content: Signal[TypedTag[Element]]):
+  val toggle: Evt[String] = Evt()
+  println(s"menu $label created")
+  private val visible: Signal[Boolean] =
+    this.toggle.fold(true)((vis, _) => !vis)
+  private val toggleButton =
+    Events.fromCallback[UIEvent](cb =>
+      Signal.dynamic {
+        a(
+          s"${if this.visible() then "▼" else "▶"} $label",
+          onclick := cb
+        )
+      }.asModifier
+    )
+  this.toggleButton.event.observe(_ => toggle.fire(label))
+  this.toggleButton.event.observe(_ => println(s"$label pressed"))
+  this.toggle.observe(_ => println(s"visibility of $label toggled"))
+  this.visible.observe(_ =>
+    println(s"visible of $label changed. Is now ${visible.now}")
+  )
+  val show = Signal {
+    Seq(
+      toggleButton.data,
+      div(
+        display := (if this.visible() then "inherit" else "none"),
+        content()
+      )
     )
   }
+class View(controller: Controller):
+  val appState = controller.state
 
   trait ToHTML[A]:
     extension (a: A) def toHTML: Tag
@@ -43,73 +60,69 @@ class View(controller: Controller):
     extension (f: Force)
       def toHTML =
         div(
-          h2(`class` := "force", f.name),
-          removeArmyButton(f.name)
+          h2(`class` := "force", f.name)
         )
 
-  // private val addForce: CBResult[UIEvent, TypedTag[Button]] =
-  //   Events.fromCallback[UIEvent](cb => button("add force", onclick := cb))
+  /** Begin UI elements */
+  val title: Signal[StringFrag] = Signal {
+    StringFrag(appState().forces match
+      case Nil => "Please select a force"
+      case l =>
+        val name = l.length match
+          case 1 => s"${l.head.name} Army"
+          case _ =>
+            s"${l.take(l.length - 1).map(_.name).mkString(", ")}, and ${l.last.name} Alliance"
+        s"$name (${appState().forces.map(_.cost).sum}P)"
+    )
+  }
 
-  def addArmyButton(army: String): TypedTag[Element] =
+  val warbandMenu: Force => Signal[TypedTag[Element]] =
+    _ =>
+      Signal {
+        div(toggleMenu("add warband", Signal { p("TODO") }).show())
+      }
+
+  def addForceButton(army: String): TypedTag[Element] =
     val cb =
       Events.fromCallback[UIEvent](cb => a(army, onclick := cb))
     cb.event.observe(_ => miniscribe.ForceEvents.add.fire(army))
-    cb.event.observe(_ => toggleForcesMenuEvent.fire())
+    cb.event.observe(_ => forcesMenu.toggle.fire("addForce"))
     return cb.data
 
-  def removeArmyButton(army: String): TypedTag[Element] =
+  def removeForceButton(army: String): TypedTag[Element] =
     val cb =
       Events.fromCallback[UIEvent](cb => a("delete", onclick := cb))
     cb.event.observe(_ => miniscribe.ForceEvents.delete.fire(army))
     return cb.data
-  // def buildArmyButton(
-  //     army: String,
-  //     tag: TypedTag[Button]
-  // ): CBResult[String, TypedTag[Button]] = {
-  //   val handler =
-  //     Events.fromCallback[UIEvent](cb => tag(army, onclick := cb))
-  //   val button: TypedTag[Button] = handler.data
 
-  //   new CBResult(miniscribe.Controller.addForceEvent, button)
-  // }
-  val toggleForcesMenuEvent: Evt[Unit] = Evt()
-  val forcesMenuVisible: Signal[Boolean] =
-    toggleForcesMenuEvent.fold(false)((vis, _) => !vis)
-  val toggleForcesButton =
-    Events.fromCallback[UIEvent](cb =>
-      Signal {
-        a(
-          s"${if forcesMenuVisible() then "▼" else "▶"} add force",
-          onclick := cb
-        )
-      }.asModifier
-    )
-  val observer =
-    toggleForcesButton.event.observe(_ => toggleForcesMenuEvent.fire())
-
-  val forcesMenu: Signal[TypedTag[Element]] = Signal {
-    div(
-      display := (if forcesMenuVisible() then "inherit" else "none"),
+  val forcesMenu = toggleMenu(
+    "add force",
+    Signal {
       controller.availableForceOptions() match
         case Left(message) => p(message)
         case Right(forceOptions) =>
-          ul(forceOptions.sorted.map(name => li(addArmyButton(name))))
-    )
-  }
-  val navbar = ul(
-    `class` := "menu",
-    toggleForcesButton.data
+          ul(forceOptions.sorted.map(name => li(addForceButton(name))))
+    }
   )
 
   // render function
   def getContent(): HtmlTag =
-    body(Signal {
-      div(
-        title(),
+    body(
+      h1(title.asModifier),
+      Signal.dynamic {
         div(
-          controller.state().forces.map(_.toHTML)
-        ),
-        navbar,
-        forcesMenu()
-      )
-    }.asModifier)
+          controller
+            .state()
+            .forces
+            .map(f =>
+              val x =
+                new toggleMenu(
+                  s"${f.name}",
+                  Signal.dynamic { div(s"TODO ${f.name}") }
+                )
+              div(f.toHTML, x.show())
+            ),
+          forcesMenu.show()
+        )
+      }.asModifier
+    )
