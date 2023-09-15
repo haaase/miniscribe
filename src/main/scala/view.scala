@@ -37,11 +37,13 @@ class toggleMenu(label: String, content: Signal[TypedTag[Element]]):
     println(s"visible of $label changed. Is now ${visible.now}")
   )
   val show = Signal {
-    Seq(
-      toggleButton.data,
-      div(
-        display := (if this.visible() then "inherit" else "none"),
-        content()
+    span(
+      Seq(
+        toggleButton.data,
+        div(
+          display := (if this.visible() then "inherit" else "none"),
+          content()
+        )
       )
     )
   }
@@ -109,20 +111,6 @@ class View(controller: Controller):
   def getContent(): HtmlTag =
     body(
       h1(title.asModifier),
-      Signal.dynamic {
-        div(
-          controller
-            .state()
-            .forces
-            .map(f =>
-              val x =
-                new toggleMenu(
-                  s"${f.name}",
-                  Signal.dynamic { div(s"TODO ${f.name}") }
-                )
-              div(f.toHTML, x.show())
-            ),
-          forcesMenu.show()
-        )
-      }.asModifier
+      ArmyComponent(appState.map(_.forces)).render,
+      forcesMenu.show.asModifier
     )
