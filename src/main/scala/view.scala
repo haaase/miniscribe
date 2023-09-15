@@ -3,18 +3,12 @@ package miniscribe
 import rescala.default.*
 import rescala.extra.Tags._
 import scalatags.JsDom.all._
-import org.scalajs.dom.html.{Element, Div, Heading, Input, LI}
+import org.scalajs.dom.html.{Element, Div}
 import org.scalajs.dom.UIEvent
-import org.scalajs.dom.html.Button
 import rescala.default
-import rescala.default.Events.CBResult
-import miniscribe.Controller
 import scalatags.JsDom._
-import scala.xml.Elem
 import miniscribe.data.{Force, Hero}
 import miniscribe.data.given
-import typings.std.stdStrings.end
-import org.scalajs.dom.HTMLDivElement
 
 class toggleMenu(label: String, content: Signal[TypedTag[Element]]):
   val toggle: Evt[String] = Evt()

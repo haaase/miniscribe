@@ -3,16 +3,12 @@ package miniscribe
 import cats.syntax.all._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
 import scala.scalajs.js
 import scala.scalajs.js.typedarray.Uint8Array
 import scala.scalajs.js.JSConverters._
-import org.scalajs.dom.document
 import org.scalajs.dom.Blob
-import typings.zipJsZipJs.mod.{BlobReader, Entry, TextWriter, ZipReader}
+import typings.zipJsZipJs.mod.{BlobReader, TextWriter, ZipReader}
 import sttp.client3._
-import scalatags.JsDom.all._
 import fs2.{Fallible, Stream}
 import fs2.data.xml._
 import fs2.data.xml.dom._
@@ -23,9 +19,9 @@ import typings.idbKeyval.{mod => idbKeyval}
 object DataBackend:
   // urls
   private val fetchBackend = FetchBackend()
-  val corsProxy =
-    uri"https://miniscribe-cors.fly.dev"
-    // uri"http://localhost:8080"
+  private val corsProxy =
+    // uri"https://miniscribe-cors.fly.dev"
+    uri"http://localhost:8080"
   // see https://gallery.bsdata.net/?repo=middle-earth and https://github.com/BSData/gallery for better alternative
   private val mesbgRoot =
     uri"$corsProxy/https://github.com/BSData/middle-earth/releases/latest/download/"

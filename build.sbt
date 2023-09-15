@@ -10,6 +10,22 @@ enablePlugins(ScalablyTypedConverterPlugin)
 // This is an application with a main method
 scalaJSUseMainModuleInitializer := true
 
+// stricter compiler warnings
+scalacOptions ++= List(
+  "-deprecation",
+  "-explain", // explain errors in more detail
+  // "-new-syntax", // force new syntax
+  // warn in case of unused imports and values
+  "-Wunused:imports",
+  "-Wunused:locals",
+  "-Wunused:privates",
+  "-Wunused:params",
+  "-Wunused:implicits",
+  "-Wunused:linted", // not sure what this does actually
+  "-Xfatal-warnings", // turn warnings into errors
+  "-Xmax-inlines:200" // needed for circe generic
+)
+
 libraryDependencies += "com.softwaremill.sttp.client3" %%% "core" % "3.8.9"
 libraryDependencies += "org.gnieh" %%% "fs2-data-xml-scala" % "1.6.1"
 libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.1.0"

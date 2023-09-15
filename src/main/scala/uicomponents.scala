@@ -1,10 +1,9 @@
 package miniscribe
 
 import rescala.default._
-import miniscribe.data.{Force, Hero}
+import miniscribe.data.{Force}
 import scalatags.JsDom._
 import scalatags.JsDom.all._
-import org.scalajs.dom.HTMLDivElement
 import rescala.extra.Tags._
 
 trait UIComponent:

@@ -3,17 +3,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import rescala.default._
 import scala.util.Failure
 import scala.util.Success
-import cats.conversions.all
-import miniscribe.data.{AppState, Force, Hero}
-import miniscribe.data.given
+import miniscribe.data.{AppState, Force}
 import java.util.Base64
-import java.nio.charset.StandardCharsets
 import org.scalajs.dom
 import org.scalajs.dom.URLSearchParams
 import scala.util.Try
 import org.scalajs.dom.PopStateEvent
 import scala.xml.{Document => XMLDocument}
-import scala.concurrent.Future
 import rescala.default
 
 sealed trait EventTypes
