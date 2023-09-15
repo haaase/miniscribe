@@ -1,7 +1,7 @@
 import scalajsbundler.util.JSON.{obj, str}
 
 name := "miniScribe"
-scalaVersion := "3.2.1"
+scalaVersion := "3.3.0"
 
 enablePlugins(ScalaJSPlugin)
 enablePlugins(ScalaJSBundlerPlugin)
