@@ -4,10 +4,11 @@ import cats.syntax.all._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.scalajs.js
+import scala.scalajs.js.Promise
 import scala.scalajs.js.typedarray.Uint8Array
 import scala.scalajs.js.JSConverters._
 import org.scalajs.dom.Blob
-import typings.zipJsZipJs.mod.{BlobReader, TextWriter, ZipReader}
+import typings.zipJsZipJs.mod.{BlobReader, Entry, TextWriter, ZipReader}
 import sttp.client3._
 import fs2.{Fallible, Stream}
 import fs2.data.xml._
@@ -20,8 +21,8 @@ object DataBackend:
   // urls
   private val fetchBackend = FetchBackend()
   private val corsProxy =
-    // uri"https://miniscribe-cors.fly.dev"
-    uri"http://localhost:8080"
+    uri"https://miniscribe-cors.fly.dev"
+    // uri"http://localhost:8080"
   // see https://gallery.bsdata.net/?repo=middle-earth and https://github.com/BSData/gallery for better alternative
   private val mesbgRoot =
     uri"$corsProxy/https://github.com/BSData/middle-earth/releases/latest/download/"
@@ -32,11 +33,15 @@ object DataBackend:
     val zipFileBlob = new Blob(js.Array(zipFileJs))
     val zipFileReader = new BlobReader(zipFileBlob)
     val zipReader = new ZipReader(zipFileReader)
-    val helloWorldWriter = new TextWriter()
+    val textWriter = new TextWriter()
     for
       entries <- zipReader.getEntries().toFuture
-      firstEntry = entries.shift()
-      result <- firstEntry.getData_MEntry(helloWorldWriter).toFuture
+      firstEntry = entries.shift().asInstanceOf[Entry]
+      // result <- firstEntry.getData_MEntry(helloWorldWriter).toFuture
+      result <- firstEntry.getData
+        // necessary fix because scalablytyped could not infer type
+        .asInstanceOf[js.Function1[TextWriter, Promise[String]]](textWriter)
+        .toFuture
       _ <- zipReader.close().toFuture
     yield result
 
