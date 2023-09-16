@@ -8,7 +8,7 @@ import scala.scalajs.js.Promise
 import scala.scalajs.js.typedarray.Uint8Array
 import scala.scalajs.js.JSConverters._
 import org.scalajs.dom.Blob
-import typings.zipJsZipJs.mod.{BlobReader, Entry, TextWriter, ZipReader}
+import typings.zipJsZipJs.mod.{BlobReader, TextWriter, ZipReader}
 import sttp.client3._
 import fs2.{Fallible, Stream}
 import fs2.data.xml._
@@ -36,7 +36,7 @@ object DataBackend:
     val textWriter = new TextWriter()
     for
       entries <- zipReader.getEntries().toFuture
-      firstEntry = entries.shift().asInstanceOf[Entry]
+      firstEntry = entries.shift()
       // result <- firstEntry.getData_MEntry(helloWorldWriter).toFuture
       result <- firstEntry.getData
         // necessary fix because scalablytyped could not infer type
