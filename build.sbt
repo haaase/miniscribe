@@ -1,7 +1,7 @@
 import scalajsbundler.util.JSON.{obj, str}
 
 name := "miniScribe"
-scalaVersion := "3.3.0"
+scalaVersion := "3.3.1"
 
 enablePlugins(ScalaJSPlugin)
 enablePlugins(ScalaJSBundlerPlugin)
@@ -26,10 +26,10 @@ scalacOptions ++= List(
   "-Xmax-inlines:200" // needed for circe generic
 )
 
-libraryDependencies += "com.softwaremill.sttp.client3" %%% "core" % "3.8.9"
-libraryDependencies += "org.gnieh" %%% "fs2-data-xml-scala" % "1.6.1"
-libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.1.0"
-libraryDependencies += "de.tu-darmstadt.stg" %%% "rescala" % "0.32.0"
+libraryDependencies += "com.softwaremill.sttp.client3" %%% "core" % "3.9.0"
+libraryDependencies += "org.gnieh" %%% "fs2-data-xml-scala" % "1.8.0"
+libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.2.0"
+libraryDependencies += "de.tu-darmstadt.stg" %%% "rescala" % "0.33.0"
 libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0"
 
 // js/ts dependencies
@@ -56,9 +56,9 @@ fullOptJS / webpackConfigFile := Some(baseDirectory.value / "webpack.config.js")
 scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
 
 // protocol buffers
-Compile / PB.targets := Seq(
-  scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
-)
+// Compile / PB.targets := Seq(
+//   scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+// )
 // disable grpc service stub generation
 Compile / PB.targets := Seq(
   scalapb.gen(grpc = false) -> (Compile / sourceManaged).value
