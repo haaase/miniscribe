@@ -105,6 +105,6 @@ class View(controller: Controller):
   def getContent(): HtmlTag =
     body(
       h1(title.asModifier),
-      ArmyComponent(appState.map(_.forces)).render,
-      forcesMenu.show.asModifier
+      Signal { ArmyComponent(appState.map(_.forces)).render }.asModifier
+      // forcesMenu.show.asModifier
     )

@@ -9,43 +9,71 @@ import rescala.extra.Tags._
 trait UIComponent:
   def render: HtmlTag
 
-case class ArmyComponent(forces: Signal[Seq[Force]]) extends UIComponent:
+class ArmyComponent(forces: Signal[Seq[Force]]) extends UIComponent:
   // Maintain map of reactive sub components. Right now they are not deleted, just hidden when the
   // respective force disappears.
-  val ForceComponents: Signal[Map[Force, ForceComponent]] =
-    forces.changed.fold(forces.now.map(f => (f, ForceComponent(f))).toMap)(
-      (current, forces) => {
-        val newForces = forces.filter(!current.keySet.contains(_))
-        current ++ newForces.map(f => (f, ForceComponent(f)))
-      }
+  val forceComponents: Signal[Map[String, ForceComponent]] =
+    forces.changed.fold(Map.empty[String, ForceComponent])(
+      (currentComponents, currentForces) =>
+        val missingComponents =
+          currentForces.filter(f => !currentComponents.keySet.contains(f.name))
+        currentComponents ++ missingComponents.map(f =>
+          (
+            f.name,
+            ForceComponent(Signal.dynamic { forces().find(_.name == f.name) })
+          )
+        )
     )
+
+  val visibleComponents: Signal[List[ForceComponent]] = Signal {
+    forceComponents()
+      .filter((name, _) => forces().map(_.name).contains(name))
+      .values
+      .toList
+  }
+
+  forces.observe(f => println(s"Forces: $f"))
+  forceComponents.observe(c => println(s"ForceComponents: ${c.keys}"))
+  // visibleComponents.observe(c =>
+  //   println(s"VisibleComponents: ${c.map(_.getName)}")
+  // )
 
   def render: HtmlTag =
     div(
       `class` := "army-overview",
       Signal {
-        forces().map(ForceComponents()(_).render)
+        visibleComponents().map(_.render)
       }.asModifierL
     )
 
-case class ForceComponent(force: Force, startToggled: Boolean = false)
-    extends UIComponent:
-  val toggled: Var[Boolean] = Var(false)
+class ForceComponent(
+    force: Signal[Option[Force]]
+    // startToggled: Boolean = false
+) extends UIComponent:
+  // val toggled: Var[Boolean] = Var(startToggled)
+  // def getName: String = force.now.map(_.name).getOrElse("No force specified!")
   def render: HtmlTag =
     div(
       `class` := "force",
-      h2(force.name),
-      div(
-        a(
-          Signal {
-            span(s"${if toggled() then "▼" else "▶"} manage")
-          }.asModifier,
-          onclick := { () => toggled.transform(!_) }
-        ),
-        " | ",
-        a(
-          "delete",
-          onclick := { () => miniscribe.ForceEvents.delete.fire(force.name) }
-        )
-      )
+      Signal {
+        force() match
+          case None => span("No force specified.")
+          case Some(f) =>
+            div(
+              h2(f.name),
+              div(
+                // a(
+                //   span(s"${if toggled() then "▼" else "▶"} manage"),
+                //   onclick := { () => toggled.transform(!_) }
+                // ),
+                " | ",
+                a(
+                  "delete",
+                  onclick := { () =>
+                    miniscribe.ForceEvents.delete.fire(f.name)
+                  }
+                )
+              )
+            )
+      }.asModifier
     )
