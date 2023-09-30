@@ -18,7 +18,8 @@ object UIComponent:
     )
 
 class ForceComponent(
-    force: Force
+    force: Force,
+    heroOptions: Either[String, List[String]]
 ) extends UIComponent:
   def render: HtmlTag =
     div(
@@ -44,5 +45,21 @@ class ForceComponent(
             miniscribe.ForceEvents.delete.fire(force.name)
           }
         )
-      )
+      ),
+      Signal {
+        div(
+          `class` := "heroOptions",
+          display := s"${
+              if UIComponent.triggered()(force.name) then "inherit" else "none"
+            }",
+          heroOptions match
+            case Left(error)    => div(error)
+            case Right(options) => ul(options.map(li(_)))
+        )
+      }.asModifier
     )
+
+class HeroOptionsComponent(
+    options: Seq[String]
+) extends UIComponent:
+  def render: HtmlTag = div(options)

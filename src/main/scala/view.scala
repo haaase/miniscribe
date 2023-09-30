@@ -106,7 +106,9 @@ class View(controller: Controller):
     body(
       h1(title.asModifier),
       div(Signal {
-        appState().forces.map(f => ForceComponent(f).render)
+        appState().forces.map(f =>
+          ForceComponent(f, controller.heroOptions()(f)).render
+        )
       }.asModifierL),
       forcesMenu.show.asModifier
     )

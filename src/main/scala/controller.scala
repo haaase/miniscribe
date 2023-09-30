@@ -72,8 +72,10 @@ class Controller:
   private val allHeroOptions
       : Signal[Either[String, Map[String, List[String]]]] =
     Signal {
-      // armyIndex().map(_.mapValues(DataBackend.getHeroOptions(_)).toMap)
-      Left("Failed to display available heroes.")
+      armyIndex().map(
+        _.view.mapValues(DataBackend.getHeroOptions(_).toList).toMap
+      )
+      // Left("Failed to display available heroes.")
     }
 
   val heroOptions: Signal[Map[Force, Either[String, List[String]]]] = Signal {

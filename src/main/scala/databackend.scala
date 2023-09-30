@@ -108,7 +108,12 @@ object DataBackend:
       }.sequence
     yield allArmies.toMap
 
-  def getHeroOptions(armyCatalogue: xml.Document): List[String] = ???
+  def getHeroOptions(armyCatalogue: xml.Document): Seq[String] =
+    for
+      entries <- armyCatalogue \ "selectionEntries"
+      entry <- entries \ "selectionEntry"
+      name = entry \@ "name"
+    yield name
 
   //   dataIndex.onComplete {
   //     case Success(value)     => println(value)
