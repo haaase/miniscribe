@@ -3,7 +3,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import rescala.default._
 import scala.util.Failure
 import scala.util.Success
-import miniscribe.data.{AppState, Force}
+import miniscribe.data.{AppState, Force, Hero, Model, Warband}
 import java.util.Base64
 import org.scalajs.dom
 import org.scalajs.dom.URLSearchParams
@@ -13,9 +13,10 @@ import scala.xml.{Document => XMLDocument}
 import rescala.default
 
 // ==== World events ====
-object ForceEvents:
-  val add = Evt[String]()
-  val delete = Evt[String]()
+object ArmyEvents:
+  val addForce = Evt[String]() // forceName
+  val deleteForce = Evt[String]() // forceName
+  val addWarband = Evt[(Force, String)]() // force, heroName
 
 object NavigationEvents:
   val forwardBackward = Evt[Unit]()
@@ -34,18 +35,28 @@ class Controller:
     else AppState()
 
   // app state can be changed through these events
-  private val addAct = ForceEvents.add.act[AppState] { f =>
+  private val addForceAct = ArmyEvents.addForce.act[AppState] { f =>
     current.copy(forces = current.forces :+ Force(f, List()))
   }
-  private val delAct = ForceEvents.delete.act[AppState] { f =>
+  private val delForceAct = ArmyEvents.deleteForce.act[AppState] { f =>
     current.copy(forces = current.forces.filter(_._1 != f))
+  }
+  private val addWarbandAct = ArmyEvents.addWarband.act[AppState] { (f, h) =>
+    current.copy(forces = current.forces.map {
+      case g @ Force(name, warbands, _) if f == g =>
+        val newHero = Hero(model = Some(Model(name = h)))
+        Force(name, warbands = (warbands.:+(Warband(hero = Some(newHero)))))
+      case g => g
+    })
   }
   private val forwBackwAct = NavigationEvents.forwardBackward.act[AppState] {
     _ =>
       parseState() // whenever we detect a forward/backward event, simply parse state from proto
   }
   val state: Signal[AppState] =
-    Fold(parseState())(addAct, delAct, forwBackwAct)
+    Fold(parseState())(addForceAct, delForceAct, addWarbandAct, forwBackwAct)
+
+  state.observe(s => println(s"state changed: $s"))
   // =========================
 
   // ==== Derived values ====
@@ -91,15 +102,14 @@ class Controller:
   // ===== Browser history API a.k.a. handle forward/backward events =======
   // update history when AppState changes but not on forward/backward events
   private val lastEvent =
-    ((ForceEvents.add || ForceEvents.delete).map(_ =>
-      "force"
-    ) || NavigationEvents.forwardBackward.map(_ => "fb"))
+    (state.changed.map(_ => "armyChange") || NavigationEvents.forwardBackward
+      .map(_ => "fb"))
       .latest()
   Signal { (lastEvent(), state()) }.observe {
     case ("fb", _) => ()
-    case (_, s) =>
+    case (_, state) =>
       val p = Base64.getEncoder.encodeToString(
-        data.AppState(forces = s.forces).toByteArray
+        state.toByteArray
       )
       if !(p.isEmpty()) then
         dom.window.history.pushState(p, "title", s"?state=$p")

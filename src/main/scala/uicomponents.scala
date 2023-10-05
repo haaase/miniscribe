@@ -1,65 +1,86 @@
 package miniscribe
 
 import rescala.default._
-import miniscribe.data.{Force}
+import miniscribe.data.{Force, Warband}
 import scalatags.JsDom._
 import scalatags.JsDom.all._
-import rescala.extra.Tags._
 
 trait UIComponent:
   def render: HtmlTag
 
 object UIComponent:
   type ID = String
-  val triggerMenuEvt: Evt[ID] = Evt()
-  val triggered: Signal[Map[ID, Boolean]] =
-    triggerMenuEvt.fold(Map.WithDefault(Map.empty[ID, Boolean], _ => false))(
-      (acc, id) => acc.updated(id, !acc(id))
-    )
+  val toggleMenuEvt: Evt[ID] = Evt()
+  // val toggled: Signal[Map[ID, Boolean]] =
+  //   toggleMenuEvt.fold(Map.WithDefault(Map.empty[ID, Boolean], _ => false))(
+  //     (acc, id) => acc.updated(id, !acc(id))
+  //   )
 
-class ForceComponent(
+  // things that change the UI state
+  val toggled: Signal[Map[ID, Boolean]] =
+    Events.foldAll(Map.WithDefault(Map.empty[ID, Boolean], _ => false)) { acc =>
+      Seq(
+        // toggle button presses
+        toggleMenuEvt act2 (id => acc.updated(id, !acc(id))),
+        // force removals
+        ArmyEvents.deleteForce act2 (forceName => acc.updated(forceName, false))
+      )
+    }
+
+case class ForceComponent(
     force: Force,
-    heroOptions: Either[String, List[String]]
+    heroOptions: Either[String, List[String]],
+    toggled: Boolean = false
 ) extends UIComponent:
   def render: HtmlTag =
     div(
       `class` := "force",
       h2(force.name),
+      force.warbands.map(w => WarbandComponent(w).render),
       div(
         a(
-          Signal {
-            span(
-              s"${if UIComponent.triggered()(force.name) then "▼" else "▶"} " +
-                s"${
-                    if force.warbands.isEmpty then "add warband"
-                    else "manage warbands"
-                  }"
-            )
-          }.asModifier,
-          onclick := { () => UIComponent.triggerMenuEvt.fire(force.name) }
+          span(
+            s"${if toggled then "▼" else "▶"} " +
+              s"${
+                  if force.warbands.isEmpty then "add warband"
+                  else "manage warbands"
+                }"
+          ),
+          onclick := { () => UIComponent.toggleMenuEvt.fire(force.name) }
         ),
         " | ",
         a(
           "delete",
           onclick := { () =>
-            miniscribe.ForceEvents.delete.fire(force.name)
+            miniscribe.ArmyEvents.deleteForce.fire(force.name)
           }
         )
       ),
-      Signal {
-        div(
-          `class` := "heroOptions",
-          display := s"${
-              if UIComponent.triggered()(force.name) then "inherit" else "none"
-            }",
-          heroOptions match
-            case Left(error)    => div(error)
-            case Right(options) => ul(options.map(li(_)))
-        )
-      }.asModifier
+      div(
+        `class` := "heroOptions",
+        display := s"${if toggled then "inherit" else "none"}",
+        heroOptions match
+          case Left(error) => div(error)
+          case Right(options) =>
+            ul(
+              options.map(heroName =>
+                li(
+                  a(
+                    heroName,
+                    onclick := { () =>
+                      ArmyEvents.addWarband.fire((force, heroName))
+                    }
+                  )
+                )
+              )
+            )
+      )
     )
 
-class HeroOptionsComponent(
-    options: Seq[String]
+case class WarbandComponent(
+    warband: Warband
 ) extends UIComponent:
-  def render: HtmlTag = div(options)
+  def render: HtmlTag = div(
+    h3(warband.hero.flatMap(_.model.map(_.name))),
+    warband.troops.map(_.name)
+  )

@@ -81,14 +81,14 @@ class View(controller: Controller):
   def addForceButton(army: String): TypedTag[Element] =
     val cb =
       Events.fromCallback[UIEvent](cb => a(army, onclick := cb))
-    cb.event.observe(_ => miniscribe.ForceEvents.add.fire(army))
+    cb.event.observe(_ => miniscribe.ArmyEvents.addForce.fire(army))
     cb.event.observe(_ => forcesMenu.toggle.fire("addForce"))
     return cb.data
 
   def removeForceButton(army: String): TypedTag[Element] =
     val cb =
       Events.fromCallback[UIEvent](cb => a("delete", onclick := cb))
-    cb.event.observe(_ => miniscribe.ForceEvents.delete.fire(army))
+    cb.event.observe(_ => miniscribe.ArmyEvents.deleteForce.fire(army))
     return cb.data
 
   val forcesMenu = toggleMenu(
@@ -107,7 +107,11 @@ class View(controller: Controller):
       h1(title.asModifier),
       div(Signal {
         appState().forces.map(f =>
-          ForceComponent(f, controller.heroOptions()(f)).render
+          ForceComponent(
+            f,
+            controller.heroOptions()(f),
+            UIComponent.toggled()(f.name)
+          ).render
         )
       }.asModifierL),
       forcesMenu.show.asModifier
