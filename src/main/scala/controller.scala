@@ -11,6 +11,7 @@ import scala.util.Try
 import org.scalajs.dom.PopStateEvent
 import scala.xml.{Document => XMLDocument}
 import rescala.default
+import miniscribe.DataBackend.HeroOption
 
 // ==== World events ====
 object ArmyEvents:
@@ -56,7 +57,6 @@ class Controller:
   val state: Signal[AppState] =
     Fold(parseState())(addForceAct, delForceAct, addWarbandAct, forwBackwAct)
 
-  state.observe(s => println(s"state changed: $s"))
   // =========================
 
   // ==== Derived values ====
@@ -78,7 +78,7 @@ class Controller:
 
   // all hero options
   private val allHeroOptions
-      : Signal[Either[String, Map[String, List[String]]]] =
+      : Signal[Either[String, Map[String, List[HeroOption]]]] =
     Signal {
       armyIndex().map(
         _.view.mapValues(DataBackend.getHeroOptions(_).toList).toMap
@@ -89,10 +89,16 @@ class Controller:
   val heroOptions: Signal[Map[Force, Either[String, List[String]]]] = Signal {
     state().forces
       .map(f =>
-        val myOpt = for
-          allOpt <- allHeroOptions()
-          taken = f.warbands.map(_.hero.get.model.get.name)
-        yield allOpt(f.name).filter(!taken.contains(_))
+        val myOpt =
+          for
+            allOpt <- allHeroOptions()
+            taken = f.warbands.map(_.hero.get.model.get.name).toSet
+          yield allOpt(f.name)
+            .filter(opt =>
+              // only keep options that are not unique or not yet taken
+              !taken.contains(opt.name) || !opt.unique
+            )
+            .map(_.name)
         (f, myOpt)
       )
       .toMap

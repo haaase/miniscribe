@@ -108,12 +108,23 @@ object DataBackend:
       }.sequence
     yield allArmies.toMap
 
-  def getHeroOptions(armyCatalogue: xml.Document): Seq[String] =
+  final case class HeroOption(name: String, unique: Boolean = false)
+  def getHeroOptions(armyCatalogue: xml.Document): Seq[HeroOption] =
+    val a =
     for
       entries <- armyCatalogue \ "selectionEntries"
       entry <- entries \ "selectionEntry"
       name = entry \@ "name"
-    yield name
+        if entry \@ "hidden" == "false" // hide hidden entries
+        isUnique = !(for
+          constraintsSec <- entry \ "constraints"
+          constraints <- constraintsSec \ "constraint"
+        yield constraints)
+          .filter(c => c \@ "type" == "max" && c \@ "value" == "1.0")
+          .isEmpty
+      yield HeroOption(name, isUnique)
+    println(s"heroOptions for ${armyCatalogue \@ "name"}: $a")
+    a
 
   //   dataIndex.onComplete {
   //     case Success(value)     => println(value)
