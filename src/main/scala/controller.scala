@@ -12,21 +12,17 @@ import org.scalajs.dom.PopStateEvent
 import scala.xml.{Document => XMLDocument}
 import rescala.default
 
-sealed trait EventTypes
-case object ForwardBackward extends EventTypes
-sealed trait ForceEvent extends EventTypes:
-  def force: String
-case class Add(force: String) extends ForceEvent
-case class Delete(force: String) extends ForceEvent
-
+// ==== World events ====
 object ForceEvents:
   val add = Evt[String]()
   val delete = Evt[String]()
 
 object NavigationEvents:
   val forwardBackward = Evt[Unit]()
+// ======================
 
 class Controller:
+  // ===== Build and modify app state =====
   // initialize based on URL parameters
   private def parseState() =
     val params = URLSearchParams(dom.window.location.search)
@@ -50,7 +46,9 @@ class Controller:
   }
   val state: Signal[AppState] =
     Fold(parseState())(addAct, delAct, forwBackwAct)
+  // =========================
 
+  // ==== Derived values ====
   // fetch army options
   private val armyIndex: Var[Either[String, Map[String, XMLDocument]]] =
     Var(
@@ -61,7 +59,6 @@ class Controller:
     case Failure(exception) =>
       armyIndex.set(Left(s"Failed to acquire army index: $exception"))
   }
-
   val availableForceOptions: Signal[Either[String, Seq[String]]] =
     Signal {
       val forceNames = state().forces.map(_.name).toSet
@@ -89,7 +86,9 @@ class Controller:
       )
       .toMap
   }
+  // ===============================
 
+  // ===== Browser history API a.k.a. handle forward/backward events =======
   // update history when AppState changes but not on forward/backward events
   private val lastEvent =
     ((ForceEvents.add || ForceEvents.delete).map(_ =>
@@ -119,3 +118,4 @@ class Controller:
       NavigationEvents.forwardBackward.fire()
     }
   )
+  // ==================================================================
