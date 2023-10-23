@@ -23,7 +23,7 @@ object UIComponent:
         // toggle button presses
         toggleMenuEvt act2 (id => acc.updated(id, !acc(id))),
         // force removals
-        ArmyEvents.deleteForce act2 (forceName => acc.updated(forceName, false))
+        armyEvents.deleteForce act2 (forceName => acc.updated(forceName, false))
       )
     }
 
@@ -52,7 +52,7 @@ case class ForceComponent(
         a(
           "delete",
           onclick := { () =>
-            miniscribe.ArmyEvents.deleteForce.fire(force.name)
+            miniscribe.armyEvents.deleteForce.fire(force.name)
           }
         )
       ),
@@ -68,7 +68,7 @@ case class ForceComponent(
                   a(
                     heroName,
                     onclick := { () =>
-                      ArmyEvents.addWarband.fire((force, heroName))
+                      armyEvents.addWarband.fire((force, heroName))
                     }
                   )
                 )

@@ -14,12 +14,13 @@ import rescala.default
 import miniscribe.DataBackend.HeroOption
 
 // ==== World events ====
-object ArmyEvents:
+object armyEvents:
   val addForce = Evt[String]() // forceName
   val deleteForce = Evt[String]() // forceName
   val addWarband = Evt[(Force, String)]() // force, heroName
+  val all = addForce || deleteForce || addWarband
 
-object NavigationEvents:
+object navigationEvents:
   val forwardBackward = Evt[Unit]()
 // ======================
 
@@ -36,13 +37,13 @@ class Controller:
     else AppState()
 
   // app state can be changed through these events
-  private val addForceAct = ArmyEvents.addForce.act[AppState] { f =>
+  private val addForceAct = armyEvents.addForce.act[AppState] { f =>
     current.copy(forces = current.forces :+ Force(f, List()))
   }
-  private val delForceAct = ArmyEvents.deleteForce.act[AppState] { f =>
+  private val delForceAct = armyEvents.deleteForce.act[AppState] { f =>
     current.copy(forces = current.forces.filter(_._1 != f))
   }
-  private val addWarbandAct = ArmyEvents.addWarband.act[AppState] { (f, h) =>
+  private val addWarbandAct = armyEvents.addWarband.act[AppState] { (f, h) =>
     current.copy(forces = current.forces.map {
       case g @ Force(name, warbands, _) if f == g =>
         val newHero = Hero(model = Some(Model(name = h)))
@@ -50,7 +51,7 @@ class Controller:
       case g => g
     })
   }
-  private val forwBackwAct = NavigationEvents.forwardBackward.act[AppState] {
+  private val forwBackwAct = navigationEvents.forwardBackward.act[AppState] {
     _ =>
       parseState() // whenever we detect a forward/backward event, simply parse state from proto
   }
@@ -108,11 +109,11 @@ class Controller:
   // ===== Browser history API a.k.a. handle forward/backward events =======
   // update history when AppState changes but not on forward/backward events
   private val lastEvent =
-    (state.changed.map(_ => "armyChange") || NavigationEvents.forwardBackward
+    (armyEvents.all.map(_ => "armyChange") || navigationEvents.forwardBackward
       .map(_ => "fb"))
       .latest()
   Signal { (lastEvent(), state()) }.observe {
-    case ("fb", _) => ()
+    case ("fb", _) => () // don't do anything here
     case (_, state) =>
       val p = Base64.getEncoder.encodeToString(
         state.toByteArray
@@ -131,7 +132,7 @@ class Controller:
   dom.window.addEventListener(
     "popstate",
     { (e: PopStateEvent) =>
-      NavigationEvents.forwardBackward.fire()
+      navigationEvents.forwardBackward.fire()
     }
   )
   // ==================================================================
