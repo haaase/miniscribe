@@ -87,9 +87,22 @@ object DataBackend:
     yield parseXML(string)
 
   def buildArmyIndex(): Future[Map[String, xml.Document]] =
-    // get index
-    val xmlDoc =
-      fetchFile(uri"$mesbgRoot/middle-earth.latest.bsi").map(parseXML)
+    // fetch index
+    val indexName = "middle-earth.latest.bsi"
+    val fetchedIndex = fetchFile(uri"$mesbgRoot/$indexName")
+
+    // store index in cache if we succeed
+    fetchedIndex.onComplete(i =>
+      if i.isSuccess then idbKeyval.set(indexName, i.get)
+    )
+
+    val xmlDoc = fetchedIndex
+      // recover from cache if fetching the index failed
+      .recoverWith { case _ =>
+        println("trying to fetch from cache")
+        idbKeyval.get[String](indexName).toFuture.map(_.get)
+      }
+      .map(parseXML)
 
     for
       doc <- xmlDoc
