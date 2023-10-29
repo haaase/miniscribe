@@ -4,6 +4,7 @@ import rescala.default._
 import miniscribe.data.{Force, Warband}
 import scalatags.JsDom._
 import scalatags.JsDom.all._
+import miniscribe.data.given
 
 trait UIComponent:
   def render: HtmlTag
@@ -19,10 +20,11 @@ object UIComponent:
   // things that change the UI state
   val toggled: Signal[Map[ID, Boolean]] =
     Events.foldAll(Map.WithDefault(Map.empty[ID, Boolean], _ => false)) { acc =>
+      // everything that can toggle a menu
       Seq(
-        // toggle button presses
+        // button presses
         toggleMenuEvt act2 (id => acc.updated(id, !acc(id))),
-        // force removals
+        // removal of a force collapses the associated menu
         armyEvents.deleteForce act2 (forceName => acc.updated(forceName, false))
       )
     }
@@ -81,6 +83,6 @@ case class WarbandComponent(
     warband: Warband
 ) extends UIComponent:
   def render: HtmlTag = div(
-    h3(warband.hero.flatMap(_.model.map(_.name))),
+    h3(warband.hero.flatMap(h => h.model.map(m => s"${m.name} (${h.cost})"))),
     warband.troops.map(_.name)
   )

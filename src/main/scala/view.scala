@@ -14,7 +14,7 @@ class toggleMenu(label: String, content: Signal[TypedTag[Element]]):
   val toggle: Evt[String] = Evt()
   println(s"menu $label created")
   private val visible: Signal[Boolean] =
-    this.toggle.fold(true)((vis, _) => !vis)
+    this.toggle.fold(false)((vis, _) => !vis)
   private val toggleButton =
     Events.fromCallback[UIEvent](cb =>
       Signal.dynamic {
