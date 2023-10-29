@@ -27,7 +27,7 @@ scalacOptions ++= List(
 )
 
 libraryDependencies += "com.softwaremill.sttp.client3" %%% "core" % "3.9.0"
-libraryDependencies += "org.gnieh" %%% "fs2-data-xml-scala" % "1.8.0"
+libraryDependencies += "org.gnieh" %%% "fs2-data-xml-scala" % "1.9.1"
 libraryDependencies += "org.scala-lang.modules" %%% "scala-xml" % "2.2.0"
 libraryDependencies += "de.tu-darmstadt.stg" %%% "rescala" % "0.33.0"
 libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0"
