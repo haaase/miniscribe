@@ -19,6 +19,23 @@ given HasCost[Warband] with
 
 given HasCost[Force] with
   extension (x: Force) def cost: Int = x.warbands.map(_.cost).sum
+
+trait BSData
+type Tier
+type WargearOption
+type BSId
+type BSConstraint
+
+case class BSHero(
+    bsId: BSId,
+    name: String,
+    tier: Tier,
+    baseCost: Int,
+    unique: Boolean,
+    wargearOptions: List[WargearOption],
+    constraints: List[BSConstraint] = List()
+) extends BSData
+
 // transparent trait HasCost:
 //   def cost: Int
 
